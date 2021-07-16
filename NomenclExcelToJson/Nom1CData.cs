@@ -29,6 +29,9 @@ namespace NomenclExcelToJson
         [JsonProperty("OrderMultiplicity")]
         public string OrderMultiplicity { get; set; }
 
+        [JsonProperty("Multiplicity")]
+        public string Multiplicity { get; set; }
+
         [JsonProperty("MarketingBrand")]
         public string MarketingBrand { get; set; }
 

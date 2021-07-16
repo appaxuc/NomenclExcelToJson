@@ -20,7 +20,7 @@ namespace NomenclExcelToJson
         {
             //var currentDirectory = Directory.GetCurrentDirectory();
 
-            var nomFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\blank\\rfJsonString.txt");
+            var nomFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\blank\\nom1C1607.txt");
             var elmaFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\blank\\fullElmaNomString.txt");
             var blankFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\blank\\blankString.txt");
             string addressNom = nomFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
@@ -41,7 +41,7 @@ namespace NomenclExcelToJson
             var jointObjects = GetJointObjects(nomenclatureData, elmaData, blankData);
             //ExportToExcel(jointObjects);
             //GetWrongNames(nomenclatureData);
-            GetChangesInMultiplicity(jointObjects);
+            //ExportChangesInMultiplicity(jointObjects);
 
             Console.WriteLine("FINISH!");
             Console.ReadKey();
@@ -293,12 +293,14 @@ namespace NomenclExcelToJson
                 jointObject.ElmaMultiplicity = elmaObject?.Kratnost;
                 jointObject.GUID1C = elmaObject != null ? elmaObject.Guid1C : nomObject?.GUID1C;
                 jointObject.Name = blankObject.Name;
+                jointObject.IsWrongName = CheckWrongNames(jointObject.Name).ToString();
                 jointObject.NomInPack = nomObject?.InPack;
                 jointObject.NomInPallet = nomObject?.InPallet;
                 jointObject.NomInRow = nomObject?.InRow;
                 jointObject.NomRF = nomObject?.RF;
-                jointObject.OrderMultiplicity = nomObject?.OrderMultiplicity;
-                jointObject.RF = "Да";
+                jointObject.NomOrderMultiplicity = nomObject?.OrderMultiplicity;
+                jointObject.NomMultiplicity = nomObject?.Multiplicity;
+                jointObject.BlankRF = "Да";
                 jointObjects.Add(jointObject);
                 nom1CDatas.Remove(nomObject);
             }
@@ -321,7 +323,7 @@ namespace NomenclExcelToJson
                     jointObject.NomInPallet = elem.InPallet;
                     jointObject.NomInRow = elem.InRow;
                     jointObject.NomRF = elem.RF;
-                    jointObject.OrderMultiplicity = elem.OrderMultiplicity;
+                    jointObject.NomOrderMultiplicity = elem.OrderMultiplicity;
                     jointObjects.Add(jointObject);
                 }
             }
@@ -365,9 +367,9 @@ namespace NomenclExcelToJson
                     workbook.Worksheets[0].Cells[row, 2].Value = jointObject.BlankVendorCode;
                     workbook.Worksheets[0].Cells[row, 3].Value = jointObject.NomVendorCode;
                     workbook.Worksheets[0].Cells[row, 4].Value = jointObject.Code1С;
-                    workbook.Worksheets[0].Cells[row, 5].Value = jointObject.OrderMultiplicity;
+                    workbook.Worksheets[0].Cells[row, 5].Value = jointObject.NomOrderMultiplicity;
                     workbook.Worksheets[0].Cells[row, 6].Value = jointObject.ElmaMultiplicity;
-                    workbook.Worksheets[0].Cells[row, 7].Value = jointObject.RF;
+                    workbook.Worksheets[0].Cells[row, 7].Value = jointObject.BlankRF;
                     workbook.Worksheets[0].Cells[row, 8].Value = jointObject.NomRF;
                     workbook.Worksheets[0].Cells[row, 9].Value = jointObject.BlankInPack;
                     workbook.Worksheets[0].Cells[row, 10].Value = jointObject.NomInPack;
@@ -389,18 +391,16 @@ namespace NomenclExcelToJson
             }
         }
 
-        private static void GetWrongNames(List<Nom1CData> nom1CDatas)
+        private static bool CheckWrongNames(string name)
         {
-            foreach (var item in nom1CDatas)
+            if (name.StartsWith("ъ") || name.StartsWith("Ъ"))
             {
-                if (item.Name.StartsWith("ъ") || item.Name.StartsWith("Ъ"))
-                {
-                    File.AppendAllText(fileWrongNames, $"{item.Name} , GUID1C '{item.GUID1C}', VendorCode '{item.VendorCode}'" + Environment.NewLine);
-                }
+                return true;
             }
+            return false;
         }
 
-        private static void GetChangesInMultiplicity(List<JointObject> jointObjects)
+        private static void ExportChangesInMultiplicity(List<JointObject> jointObjects)
         {
             var changedObjects = new List<JointObject>();
             foreach (var jointObject in jointObjects)
@@ -414,9 +414,9 @@ namespace NomenclExcelToJson
                 int elmaValue = -1;
                 int blankValue = -1;
                 int nomValue = -1;
-                if (!string.IsNullOrEmpty(jointObject.OrderMultiplicity))
+                if (!string.IsNullOrEmpty(jointObject.NomOrderMultiplicity))
                 {
-                    switch (jointObject.OrderMultiplicity.Trim())
+                    switch (jointObject.NomOrderMultiplicity.Trim())
                     {
                         case "Крт":         // берем данные по ряду
                             if (!string.IsNullOrEmpty(jointObject.ElmaInRow))
@@ -509,7 +509,7 @@ namespace NomenclExcelToJson
                             needChange = CheckEquals(elmaMultiplicity, elmaValue, blankValue, nomValue);
                             break;
                         default:
-                            Console.WriteLine(jointObject.OrderMultiplicity + Environment.NewLine);
+                            Console.WriteLine(jointObject.NomOrderMultiplicity + Environment.NewLine);
                             break;
                     }
                 }
@@ -580,6 +580,7 @@ namespace NomenclExcelToJson
             var jointObjects = new List<JointObject>();
             foreach (var nom in nom1CDatas)
             {
+                bool needPull = false;
                 var elmas = elmaObjects.Where(c => c.Name.Trim() == nom.Name.Trim());
                 if (elmas.Count() > 1)
                 {
@@ -587,6 +588,7 @@ namespace NomenclExcelToJson
                     {
                         var jointObject = new JointObject();
                         jointObject.NomVendorCode = nom.VendorCode.Trim();
+                        jointObject.ElmaVendorCode = elma.VendorCode.Trim();
                         jointObject.Name = elma.Name.Trim();
                     }
                 }
