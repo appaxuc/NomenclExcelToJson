@@ -35,8 +35,8 @@ namespace NomenclExcelToJson
         [JsonProperty("Bestseller")]
         public string Bestseller { get; set; }
 
-        [JsonProperty("Kratnost")]
-        public string Kratnost { get; set; }
+        [JsonProperty("Multiplicity")]
+        public string Multiplicity { get; set; }
 
         [JsonProperty("Liquidation")]
         public string Liquidation { get; set; }

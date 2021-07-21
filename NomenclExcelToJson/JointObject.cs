@@ -7,6 +7,9 @@ namespace NomenclExcelToJson
         [JsonProperty("Name")]
         public string Name { get; set; }
 
+        [JsonProperty("Name1C")]
+        public string Name1C { get; set; }
+
         [JsonProperty("IsWrongName")]
         public string IsWrongName { get; set; }
 
@@ -33,6 +36,9 @@ namespace NomenclExcelToJson
 
         [JsonProperty("NomMultiplicity")]
         public string NomMultiplicity { get; set; }
+
+        [JsonProperty("RecomMultiplicity")]
+        public string RecomMultiplicity { get; set; }
 
         [JsonProperty("ElmaMultiplicity")]
         public string ElmaMultiplicity { get; set; }
@@ -93,5 +99,8 @@ namespace NomenclExcelToJson
 
         [JsonProperty("NomInPallet")]
         public string NomInPallet { get; set; }
+
+        [JsonProperty("Changes")]
+        public string Changes { get; set; }
     }
 }

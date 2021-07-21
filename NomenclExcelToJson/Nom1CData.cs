@@ -9,7 +9,7 @@ using Newtonsoft.Json.Converters;
 
 namespace NomenclExcelToJson
 {
-    public partial class Nom1CData
+    public partial class NomObject
     {
         [JsonProperty("Name")]
         public string Name { get; set; }
@@ -69,14 +69,14 @@ namespace NomenclExcelToJson
         public string Weight { get; set; }
     }
 
-    public partial class Nom1CData
+    public partial class NomObject
     {
-        public static List<Nom1CData> FromJson(string json) => JsonConvert.DeserializeObject<List<Nom1CData>>(json, Converter.Settings);
+        public static List<NomObject> FromJson(string json) => JsonConvert.DeserializeObject<List<NomObject>>(json, Converter.Settings);
     }
 
     public static class Serialize
     {
-        public static string ToJson(this List<Nom1CData> self) => JsonConvert.SerializeObject(self, NomenclExcelToJson.Converter.Settings);
+        public static string ToJson(this List<NomObject> self) => JsonConvert.SerializeObject(self, NomenclExcelToJson.Converter.Settings);
     }
 
     internal static class Converter

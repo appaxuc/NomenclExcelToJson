@@ -20,15 +20,12 @@ namespace NomenclExcelToJson
         {
             //var currentDirectory = Directory.GetCurrentDirectory();
 
-            var nomFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\blank\\nom1C1607.txt");
-            var elmaFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\blank\\fullElmaNomString.txt");
-            var blankFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\blank\\blankString.txt");
+            var nomFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\TestBlank\\nom1907.txt");
+            var elmaFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\TestBlank\\elma1907.txt");
+            var blankFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\TestBlank\\blank1907.txt");
             string addressNom = nomFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
             string addressElma = elmaFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
             string addressBlank = blankFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
-
-            //File.AppendAllText(fileElmaWithoutRF, "Записи ELMA без категории РФ: " + Environment.NewLine);
-            //File.AppendAllText(fileChangesBlankElma, "----------------------------------------------------------" + Environment.NewLine);
 
             var nomenclatureData = GetJsonDataFromFile(addressNom);
             var elmaData = GetJsonDataFromElmaFile(addressElma);
@@ -38,8 +35,9 @@ namespace NomenclExcelToJson
             //ExchangeFromNomenclature1CAndBlank(nomenclatureData, blankData);
             //ExchangeFromElmaAndBlank(elmaData, blankData);
             //ExchangeFromAll(nomenclatureData, elmaData, blankData);
-            var jointObjects = GetJointObjects(nomenclatureData, elmaData, blankData);
-            //ExportToExcel(jointObjects);
+            //var jointObjects = GetJointObjects(nomenclatureData, elmaData, blankData);
+            var jointObjects = GetRepeatPositions(elmaData, nomenclatureData, blankData);
+            ExportToExcel(jointObjects);
             //GetWrongNames(nomenclatureData);
             //ExportChangesInMultiplicity(jointObjects);
 
@@ -47,10 +45,10 @@ namespace NomenclExcelToJson
             Console.ReadKey();
         }
 
-        private static List<Nom1CData> GetJsonDataFromFile(string fileRF)
+        private static List<NomObject> GetJsonDataFromFile(string nomFile)
         {
-            var jsonDataAll = Nom1CData.FromJson(fileRF);
-            var jsonData = new List<Nom1CData>();
+            var jsonDataAll = NomObject.FromJson(nomFile);
+            var jsonData = new List<NomObject>();
             foreach (var item in jsonDataAll)
             {
                 if (item.RF == "Да")
@@ -62,8 +60,16 @@ namespace NomenclExcelToJson
         }
         private static List<ElmaObject> GetJsonDataFromElmaFile(string elmaFile)
         {
-            var elmaData = ElmaObject.FromJsonElma(elmaFile);
-            return elmaData;
+            var elmaDataAll = ElmaObject.FromJsonElma(elmaFile);
+            //var elmaData = new List<ElmaObject>();
+            //foreach (var item in elmaDataAll)
+            //{
+            //    if (item.Categories.Contains("РФ"))
+            //    {
+            //        elmaData.Add(item);
+            //    }
+            //}
+            return elmaDataAll;
         }
         private static List<BlankObject> GetJsonDataFromBlankFile(string blankFile)
         {
@@ -71,7 +77,7 @@ namespace NomenclExcelToJson
             return blankData;
         }
 
-        private static void ExchangeFromNomenclature1CAndElma(List<Nom1CData> nom1CDatas, List<ElmaObject> elmaObjects)
+        private static void ExchangeFromNomenclature1CAndElma(List<NomObject> nom1CDatas, List<ElmaObject> elmaObjects)
         {
             foreach (var item in nom1CDatas)
             {
@@ -129,9 +135,9 @@ namespace NomenclExcelToJson
             }
         }
 
-        private static void ExchangeFromNomenclature1CAndBlank(List<Nom1CData> nom1CDatas, List<BlankObject> blankObjects)
+        private static void ExchangeFromNomenclature1CAndBlank(List<NomObject> nom1CDatas, List<BlankObject> blankObjects)
         {
-            var inBlankNotFound = new List<Nom1CData>();
+            var inBlankNotFound = new List<NomObject>();
             var in1CNotfound = new List<BlankObject>();
             foreach (var nom in nom1CDatas)
             {
@@ -191,7 +197,7 @@ namespace NomenclExcelToJson
             }
         }
 
-        private static void ExchangeFromAll(List<Nom1CData> nom1CDatas, List<ElmaObject> elmaObjects, List<BlankObject> blankObjects)
+        private static void ExchangeFromAll(List<NomObject> nom1CDatas, List<ElmaObject> elmaObjects, List<BlankObject> blankObjects)
         {
             foreach (var nom in nom1CDatas)
             {
@@ -281,7 +287,7 @@ namespace NomenclExcelToJson
             }
         }
 
-        private static List<JointObject> GetJointObjects(List<Nom1CData> nom1CDatas, List<ElmaObject> elmaObjects, List<BlankObject> blankObjects)
+        private static List<JointObject> GetJointObjects(List<NomObject> nomObjects, List<ElmaObject> elmaObjects, List<BlankObject> blankObjects)
         {
             var jointObjects = new List<JointObject>();
             foreach (var blankObject in blankObjects)
@@ -289,8 +295,7 @@ namespace NomenclExcelToJson
                 var jointObject = new JointObject();
                 jointObject.BlankVendorCode = blankObject.VendorCode.Trim();
                 var elmaObject = elmaObjects.Where(c => c.VendorCode.Trim() == blankObject.VendorCode.Trim()).FirstOrDefault();
-                var nomObject = nom1CDatas.Where(c => c.VendorCode.Trim() == blankObject.VendorCode.Trim()).FirstOrDefault();
-                nom1CDatas.Remove(nomObject);
+                var nomObject = nomObjects.Where(c => c.VendorCode.Trim() == blankObject.VendorCode.Trim()).FirstOrDefault();
                 jointObject.NomVendorCode = nomObject?.VendorCode;
                 jointObject.BlankInPack = blankObject.InPack;
                 jointObject.BlankInPallet = blankObject.InPallet;
@@ -299,7 +304,7 @@ namespace NomenclExcelToJson
                 jointObject.ElmaInPack = elmaObject?.InPack;
                 jointObject.ElmaInPallet = elmaObject?.InPallet;
                 jointObject.ElmaInRow = elmaObject?.InRow;
-                jointObject.ElmaMultiplicity = elmaObject?.Kratnost;
+                jointObject.ElmaMultiplicity = elmaObject?.Multiplicity;
                 jointObject.GUID1C = elmaObject != null ? elmaObject.Guid1C : nomObject?.GUID1C;
                 jointObject.Name = blankObject.Name;
                 jointObject.IsWrongName = CheckWrongNames(jointObject.Name).ToString();
@@ -309,11 +314,12 @@ namespace NomenclExcelToJson
                 jointObject.NomRF = nomObject?.RF;
                 jointObject.NomOrderMultiplicity = nomObject?.OrderMultiplicity;
                 jointObject.NomMultiplicity = nomObject?.Multiplicity;
+                jointObject.RecomMultiplicity = GetNomenclatureValue(nomObject);
                 jointObject.BlankRF = "Да";
                 jointObjects.Add(jointObject);
-                nom1CDatas.Remove(nomObject);
+                nomObjects.Remove(nomObject);
             }
-            foreach (var elem in nom1CDatas)
+            foreach (var elem in nomObjects)
             {
                 var jointObject = new JointObject();
                 var elmaObject = elmaObjects.Where(c => c.VendorCode.Trim() == elem.VendorCode.Trim()).FirstOrDefault();
@@ -322,7 +328,7 @@ namespace NomenclExcelToJson
                 jointObject.ElmaInPack = elmaObject?.InPack;
                 jointObject.ElmaInPallet = elmaObject?.InPallet;
                 jointObject.ElmaInRow = elmaObject?.InRow;
-                jointObject.ElmaMultiplicity = elmaObject?.Kratnost;
+                jointObject.ElmaMultiplicity = elmaObject?.Multiplicity;
                 jointObject.GUID1C = elem.GUID1C;
                 jointObject.Name = elem.Name;
                 jointObject.IsWrongName = CheckWrongNames(jointObject.Name).ToString();
@@ -332,6 +338,7 @@ namespace NomenclExcelToJson
                 jointObject.NomRF = elem.RF;
                 jointObject.NomOrderMultiplicity = elem.OrderMultiplicity;
                 jointObject.NomMultiplicity = elem.Multiplicity;
+                jointObject.RecomMultiplicity = GetNomenclatureValue(elem);
                 jointObjects.Add(jointObject);
             }
             return jointObjects;
@@ -339,7 +346,7 @@ namespace NomenclExcelToJson
 
         public static void ExportToExcel(List<JointObject> jointObjects)
         {
-            var newfileNamesFromJson = "JointObjects1__OOS.xlsx";
+            var newfileNamesFromJson = "JointObjects12__OOS.xlsx";
             using (MemoryStream stream = new MemoryStream())
             {
                 Workbook workbook = new Workbook();
@@ -347,7 +354,7 @@ namespace NomenclExcelToJson
                 TextStyle.Number = 49;
                 StyleFlag TextFlag = new StyleFlag();
                 TextFlag.NumberFormat = true;
-                workbook.Worksheets[0].Cells[0, 0].Value = "Наименование";
+                workbook.Worksheets[0].Cells[0, 0].Value = "Наименование в БЗ";
                 workbook.Worksheets[0].Cells[0, 1].Value = "Некорректное наименование";
                 workbook.Worksheets[0].Cells[0, 2].Value = "Guid1C";
                 workbook.Worksheets[0].Cells[0, 3].Value = "Артикул в БЗ";
@@ -355,22 +362,25 @@ namespace NomenclExcelToJson
                 workbook.Worksheets[0].Cells[0, 5].Value = "Код в 1С";
                 workbook.Worksheets[0].Cells[0, 6].Value = "Единица кратности в 1С";
                 workbook.Worksheets[0].Cells[0, 7].Value = "Кратность в 1С";
-                workbook.Worksheets[0].Cells[0, 8].Value = "Кратность в ELMA";
-                workbook.Worksheets[0].Cells[0, 9].Value = "Категория РФ в БЗ";
-                workbook.Worksheets[0].Cells[0, 10].Value = "Категория РФ в 1С";
-                workbook.Worksheets[0].Cells[0, 11].Value = "БЗ: в упаковке";
-                workbook.Worksheets[0].Cells[0, 12].Value = "1С: в упаковке";
-                workbook.Worksheets[0].Cells[0, 13].Value = "ELMA: в упаковке";
-                workbook.Worksheets[0].Cells[0, 14].Value = "БЗ: в поддоне";
-                workbook.Worksheets[0].Cells[0, 15].Value = "1С: в поддоне";
-                workbook.Worksheets[0].Cells[0, 16].Value = "ELMA: в поддоне";
-                workbook.Worksheets[0].Cells[0, 17].Value = "БЗ: в ряду";
-                workbook.Worksheets[0].Cells[0, 18].Value = "1С: в ряду";
-                workbook.Worksheets[0].Cells[0, 19].Value = "ELMA: в ряду";
-                //
+                workbook.Worksheets[0].Cells[0, 8].Value = "Рекомендуемая кратность";
+                workbook.Worksheets[0].Cells[0, 9].Value = "Кратность в ELMA";
+                workbook.Worksheets[0].Cells[0, 10].Value = "Категория РФ в БЗ";
+                workbook.Worksheets[0].Cells[0, 11].Value = "Категория РФ в 1С";
+                workbook.Worksheets[0].Cells[0, 12].Value = "БЗ: в упаковке";
+                workbook.Worksheets[0].Cells[0, 13].Value = "1С: в упаковке";
+                workbook.Worksheets[0].Cells[0, 14].Value = "ELMA: в упаковке";
+                workbook.Worksheets[0].Cells[0, 15].Value = "БЗ: в поддоне";
+                workbook.Worksheets[0].Cells[0, 16].Value = "1С: в поддоне";
+                workbook.Worksheets[0].Cells[0, 17].Value = "ELMA: в поддоне";
+                workbook.Worksheets[0].Cells[0, 18].Value = "БЗ: в ряду";
+                workbook.Worksheets[0].Cells[0, 19].Value = "1С: в ряду";
+                workbook.Worksheets[0].Cells[0, 20].Value = "ELMA: в ряду";
+                workbook.Worksheets[0].Cells[0, 21].Value = "Наименование 1С";
+                workbook.Worksheets[0].Cells[0, 22].Value = "Артикул в ELMA";
                 var row = 1;
                 foreach (var jointObject in jointObjects)
                 {
+                    Console.WriteLine("Add " + jointObject.BlankVendorCode);
                     workbook.Worksheets[0].Cells[row, 0].Value = jointObject.Name;
                     workbook.Worksheets[0].Cells[row, 1].Value = jointObject.IsWrongName;
                     workbook.Worksheets[0].Cells[row, 2].Value = jointObject.GUID1C;
@@ -379,18 +389,21 @@ namespace NomenclExcelToJson
                     workbook.Worksheets[0].Cells[row, 5].Value = jointObject.Code1С;
                     workbook.Worksheets[0].Cells[row, 6].Value = jointObject.NomOrderMultiplicity;
                     workbook.Worksheets[0].Cells[row, 7].Value = jointObject.NomMultiplicity;
-                    workbook.Worksheets[0].Cells[row, 8].Value = jointObject.ElmaMultiplicity;
-                    workbook.Worksheets[0].Cells[row, 9].Value = jointObject.BlankRF;
-                    workbook.Worksheets[0].Cells[row, 10].Value = jointObject.NomRF;
-                    workbook.Worksheets[0].Cells[row, 11].Value = jointObject.BlankInPack;
-                    workbook.Worksheets[0].Cells[row, 12].Value = jointObject.NomInPack;
-                    workbook.Worksheets[0].Cells[row, 13].Value = jointObject.ElmaInPack;
-                    workbook.Worksheets[0].Cells[row, 14].Value = jointObject.BlankInPallet;
-                    workbook.Worksheets[0].Cells[row, 15].Value = jointObject.NomInPallet;
-                    workbook.Worksheets[0].Cells[row, 16].Value = jointObject.ElmaInPallet;
-                    workbook.Worksheets[0].Cells[row, 17].Value = jointObject.BlankInRow;
-                    workbook.Worksheets[0].Cells[row, 18].Value = jointObject.NomInRow;
-                    workbook.Worksheets[0].Cells[row, 19].Value = jointObject.ElmaInRow;
+                    workbook.Worksheets[0].Cells[row, 8].Value = jointObject.RecomMultiplicity;
+                    workbook.Worksheets[0].Cells[row, 9].Value = jointObject.ElmaMultiplicity;
+                    workbook.Worksheets[0].Cells[row, 10].Value = jointObject.BlankRF;
+                    workbook.Worksheets[0].Cells[row, 11].Value = jointObject.NomRF;
+                    workbook.Worksheets[0].Cells[row, 12].Value = jointObject.BlankInPack;
+                    workbook.Worksheets[0].Cells[row, 13].Value = jointObject.NomInPack;
+                    workbook.Worksheets[0].Cells[row, 14].Value = jointObject.ElmaInPack;
+                    workbook.Worksheets[0].Cells[row, 15].Value = jointObject.BlankInPallet;
+                    workbook.Worksheets[0].Cells[row, 16].Value = jointObject.NomInPallet;
+                    workbook.Worksheets[0].Cells[row, 17].Value = jointObject.ElmaInPallet;
+                    workbook.Worksheets[0].Cells[row, 18].Value = jointObject.BlankInRow;
+                    workbook.Worksheets[0].Cells[row, 19].Value = jointObject.NomInRow;
+                    workbook.Worksheets[0].Cells[row, 20].Value = jointObject.ElmaInRow;
+                    workbook.Worksheets[0].Cells[row, 21].Value = jointObject.Name1C;
+                    workbook.Worksheets[0].Cells[row, 22].Value = jointObject.ElmaVendorCode;
                     row++;
                 }
                 Worksheet sheet;
@@ -586,25 +599,67 @@ namespace NomenclExcelToJson
             return needChange;
         }
 
-        private static List<JointObject> GetRepeatPositions(List<ElmaObject> elmaObjects, List<Nom1CData> nom1CDatas)
+        private static List<JointObject> GetRepeatPositions(List<ElmaObject> elmaObjects, List<NomObject> nomObjects, List<BlankObject> blankObjects)
         {
             var jointObjects = new List<JointObject>();
-            foreach (var nom in nom1CDatas)
+            foreach (var blank in blankObjects)
             {
-                bool needPull = false;
-                var elmas = elmaObjects.Where(c => c.Name.Trim() == nom.Name.Trim());
-                if (elmas.Count() > 1)
+                var joint = new JointObject();
+                var nomObject = nomObjects.Where(c => c.VendorCode.Trim() == blank.VendorCode.Trim()).FirstOrDefault();
+                if (nomObject == null)
                 {
-                    foreach (var elma in elmas)
+                    Console.WriteLine("nom " + blank.VendorCode + " is null");
+                    nomObject = nomObjects.Where(c => c.Name.Trim().Contains(blank.Name.Trim())).FirstOrDefault();
+                    if (nomObject == null)
                     {
-                        var jointObject = new JointObject();
-                        jointObject.NomVendorCode = nom.VendorCode.Trim();
-                        jointObject.ElmaVendorCode = elma.VendorCode.Trim();
-                        jointObject.Name = elma.Name.Trim();
+                        continue;
+                    }
+                    else
+                    {
+                        Console.WriteLine("nomName for " + blank.VendorCode + " is not null");
+                        joint.Name = blank.Name;
+                        joint.Name1C = nomObject.Name;
+                        joint.BlankVendorCode = blank.VendorCode;
+                        joint.NomVendorCode = nomObject.VendorCode;
+                        var elmas = elmaObjects.Where(c => c.Name.Trim().Contains(blank.VendorCode.Trim()));
+                        foreach (var item in elmas)
+                        {
+                            joint.ElmaVendorCode += item.VendorCode.Trim() + " | РФ - " + item.Categories.Contains("РФ") + "     " + Environment.NewLine;
+                            joint.GUID1C = item.Guid1C.Trim() + " " + Environment.NewLine;
+                        }
+                        jointObjects.Add(joint);
                     }
                 }
+
             }
             return jointObjects;
+        }
+
+        public static string GetNomenclatureValue(NomObject nomObject)
+        {
+            string multi = "";
+            switch (nomObject.OrderMultiplicity)
+            {
+                case "под":
+                    multi = nomObject.InPallet;
+                    break;
+                case "ряд":
+                    multi = nomObject.InRow;
+                    break;
+                case "упак":
+                    multi = nomObject.InPack;
+                    break;
+                case "Крт":
+                    multi = nomObject.Multiplicity;
+                    break;
+                case "Шт":
+                    multi = nomObject.InPack;
+                    break;
+                default:
+                    multi = "н/а";
+                    break;
+            }
+            return multi;
         }
     }
 }
