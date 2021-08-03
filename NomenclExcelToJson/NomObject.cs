@@ -53,14 +53,14 @@ namespace NomenclExcelToJson
         [JsonProperty("Groups")]
         public string Groups { get; set; }
 
-        [JsonProperty("InPack")]
-        public string InPack { get; set; }
+        [JsonProperty("Pack")]
+        public string Pack { get; set; }
 
-        [JsonProperty("InRow")]
-        public string InRow { get; set; }
+        [JsonProperty("Row")]
+        public string Row { get; set; }
 
-        [JsonProperty("InPallet")]
-        public string InPallet { get; set; }
+        [JsonProperty("Pallet")]
+        public string Pallet { get; set; }
 
         [JsonProperty("Piece")]
         public string Piece { get; set; }

@@ -20,9 +20,9 @@ namespace NomenclExcelToJson
         {
             //var currentDirectory = Directory.GetCurrentDirectory();
 
-            var nomFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\TestBlank\\nom1907.txt");
-            var elmaFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\TestBlank\\elma1907.txt");
-            var blankFile = File.ReadAllText("C:\\Users\\y.koryukov\\Documents\\ELMA\\Test\\TestBlank\\blank1907.txt");
+            var nomFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\nomfull0208.txt");
+            var elmaFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\elmfull0308.txt");
+            var blankFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\bzfull0208.txt");
             string addressNom = nomFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
             string addressElma = elmaFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
             string addressBlank = blankFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
@@ -35,8 +35,8 @@ namespace NomenclExcelToJson
             //ExchangeFromNomenclature1CAndBlank(nomenclatureData, blankData);
             //ExchangeFromElmaAndBlank(elmaData, blankData);
             //ExchangeFromAll(nomenclatureData, elmaData, blankData);
-            //var jointObjects = GetJointObjects(nomenclatureData, elmaData, blankData);
-            var jointObjects = GetRepeatPositions(elmaData, nomenclatureData, blankData);
+            var jointObjects = GetJointObjects(nomenclatureData, elmaData, blankData);
+            //var jointObjects = GetRepeatPositions(elmaData, nomenclatureData, blankData);
             ExportToExcel(jointObjects);
             //GetWrongNames(nomenclatureData);
             //ExportChangesInMultiplicity(jointObjects);
@@ -150,20 +150,20 @@ namespace NomenclExcelToJson
                     }
                     foreach (var blankItem in blankItems)
                     {
-                        if (nom.InPack.Trim() != blankItem.InPack.Trim())
+                        if (nom.Pack.Trim() != blankItem.InPack.Trim())
                         {
                             File.AppendAllText(fileChangesNomBlank,
-                                $"{nom.VendorCode.Trim()} - 'Штук в упаковке' {nom.InPack.Trim()}, в бланке заказа {blankItem.InPack.Trim()}" + Environment.NewLine);
+                                $"{nom.VendorCode.Trim()} - 'Штук в упаковке' {nom.Pack.Trim()}, в бланке заказа {blankItem.InPack.Trim()}" + Environment.NewLine);
                         }
-                        if (nom.InRow.Trim() != blankItem.InRow.Trim())
+                        if (nom.Row.Trim() != blankItem.InRow.Trim())
                         {
                             File.AppendAllText(fileChangesNomBlank,
-                                $"{nom.VendorCode.Trim()} - 'Штук в ряду' {nom.InRow.Trim()}, в бланке заказа {blankItem.InRow.Trim()}" + Environment.NewLine);
+                                $"{nom.VendorCode.Trim()} - 'Штук в ряду' {nom.Row.Trim()}, в бланке заказа {blankItem.InRow.Trim()}" + Environment.NewLine);
                         }
-                        if (nom.InPallet.Trim() != blankItem.InPallet.Trim())
+                        if (nom.Pallet.Trim() != blankItem.InPallet.Trim())
                         {
                             File.AppendAllText(fileChangesNomBlank,
-                                $"{nom.VendorCode.Trim()} - 'Штук в поддоне' {nom.InPallet.Trim()}, в бланке заказа {blankItem.InPallet.Trim()}" + Environment.NewLine);
+                                $"{nom.VendorCode.Trim()} - 'Штук в поддоне' {nom.Pallet.Trim()}, в бланке заказа {blankItem.InPallet.Trim()}" + Environment.NewLine);
                         }
                         File.AppendAllText(fileChangesNomBlank,
                                 $"Из 1С пришло OrderMultiplicity - {nom.OrderMultiplicity.Trim()}" + Environment.NewLine);
@@ -222,19 +222,19 @@ namespace NomenclExcelToJson
                         {
                             elmaItem.InPallet = "0";
                         }
-                        if (elmaItem.InPack.Trim() != nom.InPack.Trim())
+                        if (elmaItem.InPack.Trim() != nom.Pack.Trim())
                         {
-                            elmaValue += $" В упаковке: 1C - {nom.InPack.Trim()}, elma - {elmaItem.InPack.Trim()}" + Environment.NewLine;
+                            elmaValue += $" В упаковке: 1C - {nom.Pack.Trim()}, elma - {elmaItem.InPack.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (elmaItem.InRow.Trim() != nom.InRow.Trim())
+                        if (elmaItem.InRow.Trim() != nom.Row.Trim())
                         {
-                            elmaValue += $" В строке: 1C - {nom.InRow.Trim()}, elma - {elmaItem.InRow.Trim()}" + Environment.NewLine;
+                            elmaValue += $" В строке: 1C - {nom.Row.Trim()}, elma - {elmaItem.InRow.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (elmaItem.InPallet.Trim() != nom.InPallet.Trim())
+                        if (elmaItem.InPallet.Trim() != nom.Pallet.Trim())
                         {
-                            elmaValue += $" В поддоне: 1C - {nom.InPallet.Trim()}, elma - {elmaItem.InPallet.Trim()}" + Environment.NewLine;
+                            elmaValue += $" В поддоне: 1C - {nom.Pallet.Trim()}, elma - {elmaItem.InPallet.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
                     }
@@ -252,19 +252,19 @@ namespace NomenclExcelToJson
                         {
                             blankItem.InPallet = "0";
                         }
-                        if (blankItem.InPack.Trim() != nom.InPack.Trim())
+                        if (blankItem.InPack.Trim() != nom.Pack.Trim())
                         {
-                            blankValue += $" В упаковке: 1C - {nom.InPack.Trim()}, бланк заказа - {blankItem.InPack.Trim()}" + Environment.NewLine;
+                            blankValue += $" В упаковке: 1C - {nom.Pack.Trim()}, бланк заказа - {blankItem.InPack.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (blankItem.InRow.Trim() != nom.InRow.Trim())
+                        if (blankItem.InRow.Trim() != nom.Row.Trim())
                         {
-                            blankValue += $" В строке: 1C - {nom.InRow.Trim()}, бланк заказа - {blankItem.InRow.Trim()}" + Environment.NewLine;
+                            blankValue += $" В строке: 1C - {nom.Row.Trim()}, бланк заказа - {blankItem.InRow.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (blankItem.InPallet.Trim() != nom.InPallet.Trim())
+                        if (blankItem.InPallet.Trim() != nom.Pallet.Trim())
                         {
-                            blankValue += $" В поддоне: 1C - {nom.InPallet.Trim()}, бланк заказа - {blankItem.InPallet.Trim()}" + Environment.NewLine;
+                            blankValue += $" В поддоне: 1C - {nom.Pallet.Trim()}, бланк заказа - {blankItem.InPallet.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
                     }
@@ -308,13 +308,13 @@ namespace NomenclExcelToJson
                 jointObject.GUID1C = elmaObject != null ? elmaObject.Guid1C : nomObject?.GUID1C;
                 jointObject.Name = blankObject.Name;
                 jointObject.IsWrongName = CheckWrongNames(jointObject.Name).ToString();
-                jointObject.NomInPack = nomObject?.InPack;
-                jointObject.NomInPallet = nomObject?.InPallet;
-                jointObject.NomInRow = nomObject?.InRow;
+                jointObject.NomInPack = nomObject?.Pack;
+                jointObject.NomInPallet = nomObject?.Pallet;
+                jointObject.NomInRow = nomObject?.Row;
                 jointObject.NomRF = nomObject?.RF;
                 jointObject.NomOrderMultiplicity = nomObject?.OrderMultiplicity;
                 jointObject.NomMultiplicity = nomObject?.Multiplicity;
-                jointObject.RecomMultiplicity = GetNomenclatureValue(nomObject);
+                jointObject.RecomMultiplicity = nomObject != null ? GetNomenclatureValue(nomObject) : "--";
                 jointObject.BlankRF = "Да";
                 jointObjects.Add(jointObject);
                 nomObjects.Remove(nomObject);
@@ -332,9 +332,9 @@ namespace NomenclExcelToJson
                 jointObject.GUID1C = elem.GUID1C;
                 jointObject.Name = elem.Name;
                 jointObject.IsWrongName = CheckWrongNames(jointObject.Name).ToString();
-                jointObject.NomInPack = elem.InPack;
-                jointObject.NomInPallet = elem.InPallet;
-                jointObject.NomInRow = elem.InRow;
+                jointObject.NomInPack = elem.Pack;
+                jointObject.NomInPallet = elem.Pallet;
+                jointObject.NomInRow = elem.Row;
                 jointObject.NomRF = elem.RF;
                 jointObject.NomOrderMultiplicity = elem.OrderMultiplicity;
                 jointObject.NomMultiplicity = elem.Multiplicity;
@@ -346,7 +346,7 @@ namespace NomenclExcelToJson
 
         public static void ExportToExcel(List<JointObject> jointObjects)
         {
-            var newfileNamesFromJson = "JointObjects12__OOS.xlsx";
+            var newfileNamesFromJson = "JointObjects27__OOS.xlsx";
             using (MemoryStream stream = new MemoryStream())
             {
                 Workbook workbook = new Workbook();
@@ -641,19 +641,19 @@ namespace NomenclExcelToJson
             switch (nomObject.OrderMultiplicity)
             {
                 case "под":
-                    multi = nomObject.InPallet;
+                    multi = nomObject.Pallet;
                     break;
                 case "ряд":
-                    multi = nomObject.InRow;
+                    multi = nomObject.Row;
                     break;
                 case "упак":
-                    multi = nomObject.InPack;
+                    multi = nomObject.Pack;
                     break;
                 case "Крт":
                     multi = nomObject.Multiplicity;
                     break;
                 case "Шт":
-                    multi = nomObject.InPack;
+                    multi = nomObject.Pack;
                     break;
                 default:
                     multi = "н/а";

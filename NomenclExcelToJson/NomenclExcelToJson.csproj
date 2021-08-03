@@ -53,7 +53,7 @@
     <Compile Include="BlankObject.cs" />
     <Compile Include="ElmaObject.cs" />
     <Compile Include="JointObject.cs" />
-    <Compile Include="Nom1CData.cs" />
+    <Compile Include="NomObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
