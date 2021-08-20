@@ -14,35 +14,94 @@ namespace NomenclExcelToJson
         private static string fileInBlankNotFound = @"c:\InBlankNotFound.txt";
         private static string fileChangesAll = @"c:\ChangesAll.txt";
         private static string fileElmaWithoutRF = @"c:\elmaWithoutRF.txt";
-        private static string fileWrongNames = @"c:\WrongNames.txt";
 
         static void Main()
         {
-            //var currentDirectory = Directory.GetCurrentDirectory();
+            var nomFile = File.ReadAllText(@"C:\Users\y.koryukov\test\JsonRF.txt");
 
-            var nomFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\nomfull0208.txt");
-            var elmaFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\elmfull0308.txt");
-            var blankFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\bzfull0208.txt");
-            string addressNom = nomFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
-            string addressElma = elmaFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
-            string addressBlank = blankFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
+            var elmaExcelPath = File.OpenRead(@"C:\Users\y.koryukov\test\elma2008.xlsx");
+            var elmaObjects = ExportElmaExcelToJson(elmaExcelPath);
 
-            var nomenclatureData = GetJsonDataFromFile(addressNom);
-            var elmaData = GetJsonDataFromElmaFile(addressElma);
-            var blankData = GetJsonDataFromBlankFile(addressBlank);
+            var blankExcelPath = File.OpenRead(@"C:\Users\y.koryukov\test\bz2008.xlsx");
+            var blankObjects = ExportBlankExcelToJson(blankExcelPath);
+
+            Console.WriteLine("Elma objects: " + elmaObjects.Count.ToString());
+            Console.WriteLine("Blank objects: " + blankObjects.Count.ToString());
+
+
+            //var elmaFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\elmfull0308.txt");
+            //var blankFile = File.ReadAllText("C:\\ELMA\\Task\\blank\\test\\bzfull0208.txt");
+            //string addressNom = nomFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
+            //string addressElma = elmaFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
+            //string addressBlank = blankFile.Trim().Replace("\t", "").Replace("\\", "/").Replace("\n", " ").Replace("\r", " ");
+
+            //var nomenclatureData = GetJsonDataFromFile(addressNom);
+            //var elmaData = GetJsonDataFromElmaFile(addressElma);
+            //var blankData = GetJsonDataFromBlankFile(addressBlank);
 
             //ExchangeFromNomenclature1CAndElma(nomenclatureData, elmaData);
             //ExchangeFromNomenclature1CAndBlank(nomenclatureData, blankData);
             //ExchangeFromElmaAndBlank(elmaData, blankData);
             //ExchangeFromAll(nomenclatureData, elmaData, blankData);
-            var jointObjects = GetJointObjects(nomenclatureData, elmaData, blankData);
+            ////var jointObjects = GetJointObjects(nomenclatureData, elmaData, blankData);
             //var jointObjects = GetRepeatPositions(elmaData, nomenclatureData, blankData);
-            ExportToExcel(jointObjects);
+            ////ExportToExcel(jointObjects);
             //GetWrongNames(nomenclatureData);
             //ExportChangesInMultiplicity(jointObjects);
 
             Console.WriteLine("FINISH!");
             Console.ReadKey();
+        }
+
+        private static List<ElmaObject> ExportElmaExcelToJson(FileStream elmaExcelPath)
+        {
+            List<ElmaObject> elmaObjects = new List<ElmaObject>();
+            Workbook workbook = new Workbook(elmaExcelPath);
+            Console.WriteLine(workbook.FileName);
+            var ws = workbook.Worksheets[0];
+            Console.WriteLine(ws.Name);
+            Console.WriteLine(ws.Cells.MaxRow.ToString());
+            for (int row = 1; row < ws.Cells.MaxDataRow; row++)
+            {
+                var elmaObject = new ElmaObject();
+                elmaObject.Name = ws.Cells[row, 0].StringValue;
+                elmaObject.VendorCode = ws.Cells[row, 1].StringValue;
+                elmaObject.Categories = ws.Cells[row, 2].StringValue;
+                elmaObject.Guid1C = ws.Cells[row, 3].StringValue;
+                elmaObject.Code1С = ws.Cells[row, 4].StringValue;
+                elmaObject.Multiplicity = ws.Cells[row, 5].StringValue;
+                elmaObject.Pallet = ws.Cells[row, 6].StringValue;
+                elmaObject.Pack = ws.Cells[row, 7].StringValue;
+                elmaObject.Row = ws.Cells[row, 8].StringValue;
+                elmaObject.VolumePer1St = ws.Cells[row, 9].StringValue;
+                elmaObject.AddInfo = ws.Cells[row, 10].StringValue;
+                elmaObject.Netto = ws.Cells[row, 11].StringValue;
+                elmaObject.Brand = ws.Cells[row, 12].StringValue;
+                elmaObjects.Add(elmaObject);
+            }
+            return elmaObjects;
+        }
+
+        private static List<BlankObject> ExportBlankExcelToJson(FileStream blankExcelPath)
+        {
+            List<BlankObject> blankObjects = new List<BlankObject>();
+            Workbook workbook = new Workbook(blankExcelPath);
+            Console.WriteLine(workbook.FileName);
+            var ws = workbook.Worksheets[0];
+            Console.WriteLine(ws.Name);
+            Console.WriteLine(ws.Cells.MaxRow.ToString());
+            for (int row = 3; row < ws.Cells.MaxDataRow; row++)
+            {
+                var blankObject = new BlankObject();
+                blankObject.Name = ws.Cells[row, 0].StringValue;
+                blankObject.VendorCode = ws.Cells[row, 1].StringValue;
+                blankObject.Pallet = ws.Cells[row, 3].StringValue;
+                blankObject.Pack = ws.Cells[row, 4].StringValue;
+                blankObject.Row = ws.Cells[row, 5].StringValue;
+                blankObject.Weight = ws.Cells[row, 7].StringValue;
+                blankObjects.Add(blankObject);
+            }
+            return blankObjects;
         }
 
         private static List<NomObject> GetJsonDataFromFile(string nomFile)
@@ -115,20 +174,20 @@ namespace NomenclExcelToJson
                     }
                     foreach (var elmaItem in elmaItems)
                     {
-                        if (elmaItem.InPack.Trim() != blankItem.InPack.Trim())
+                        if (elmaItem.Pack.Trim() != blankItem.Pack.Trim())
                         {
                             File.AppendAllText(fileChangesBlankElma,
-                                $"{elmaItem.VendorCode.Trim()} : в ELMA 'Штук в упаковке' - '{elmaItem.InPack.Trim()}', в бланке заказа - '{blankItem.InPack.Trim()}'" + Environment.NewLine);
+                                $"{elmaItem.VendorCode.Trim()} : в ELMA 'Штук в упаковке' - '{elmaItem.Pack.Trim()}', в бланке заказа - '{blankItem.Pack.Trim()}'" + Environment.NewLine);
                         }
-                        if (elmaItem.InRow.Trim() != blankItem.InRow.Trim())
+                        if (elmaItem.Row.Trim() != blankItem.Row.Trim())
                         {
                             File.AppendAllText(fileChangesBlankElma,
-                                $"{elmaItem.VendorCode.Trim()} : в ELMA 'Штук в ряду' - '{elmaItem.InRow.Trim()}', в бланке заказа - '{blankItem.InRow.Trim()}'" + Environment.NewLine);
+                                $"{elmaItem.VendorCode.Trim()} : в ELMA 'Штук в ряду' - '{elmaItem.Row.Trim()}', в бланке заказа - '{blankItem.Row.Trim()}'" + Environment.NewLine);
                         }
-                        if (elmaItem.InPallet.Trim() != blankItem.InPallet.Trim())
+                        if (elmaItem.Pallet.Trim() != blankItem.Pallet.Trim())
                         {
                             File.AppendAllText(fileChangesBlankElma,
-                                $"{elmaItem.VendorCode.Trim()} : в ELMA 'Штук в поддоне' - '{elmaItem.InPallet.Trim()}', в бланке заказа - '{blankItem.InPallet.Trim()}'" + Environment.NewLine);
+                                $"{elmaItem.VendorCode.Trim()} : в ELMA 'Штук в поддоне' - '{elmaItem.Pallet.Trim()}', в бланке заказа - '{blankItem.Pallet.Trim()}'" + Environment.NewLine);
                         }
                     }
                 }
@@ -150,20 +209,20 @@ namespace NomenclExcelToJson
                     }
                     foreach (var blankItem in blankItems)
                     {
-                        if (nom.Pack.Trim() != blankItem.InPack.Trim())
+                        if (nom.Pack.Trim() != blankItem.Pack.Trim())
                         {
                             File.AppendAllText(fileChangesNomBlank,
-                                $"{nom.VendorCode.Trim()} - 'Штук в упаковке' {nom.Pack.Trim()}, в бланке заказа {blankItem.InPack.Trim()}" + Environment.NewLine);
+                                $"{nom.VendorCode.Trim()} - 'Штук в упаковке' {nom.Pack.Trim()}, в бланке заказа {blankItem.Pack.Trim()}" + Environment.NewLine);
                         }
-                        if (nom.Row.Trim() != blankItem.InRow.Trim())
+                        if (nom.Row.Trim() != blankItem.Row.Trim())
                         {
                             File.AppendAllText(fileChangesNomBlank,
-                                $"{nom.VendorCode.Trim()} - 'Штук в ряду' {nom.Row.Trim()}, в бланке заказа {blankItem.InRow.Trim()}" + Environment.NewLine);
+                                $"{nom.VendorCode.Trim()} - 'Штук в ряду' {nom.Row.Trim()}, в бланке заказа {blankItem.Row.Trim()}" + Environment.NewLine);
                         }
-                        if (nom.Pallet.Trim() != blankItem.InPallet.Trim())
+                        if (nom.Pallet.Trim() != blankItem.Pallet.Trim())
                         {
                             File.AppendAllText(fileChangesNomBlank,
-                                $"{nom.VendorCode.Trim()} - 'Штук в поддоне' {nom.Pallet.Trim()}, в бланке заказа {blankItem.InPallet.Trim()}" + Environment.NewLine);
+                                $"{nom.VendorCode.Trim()} - 'Штук в поддоне' {nom.Pallet.Trim()}, в бланке заказа {blankItem.Pallet.Trim()}" + Environment.NewLine);
                         }
                         File.AppendAllText(fileChangesNomBlank,
                                 $"Из 1С пришло OrderMultiplicity - {nom.OrderMultiplicity.Trim()}" + Environment.NewLine);
@@ -210,61 +269,61 @@ namespace NomenclExcelToJson
                 {
                     if (elmaItem != null)
                     {
-                        if (string.IsNullOrEmpty(elmaItem.InPack))
+                        if (string.IsNullOrEmpty(elmaItem.Pack))
                         {
-                            elmaItem.InPack = "0";
+                            elmaItem.Pack = "0";
                         }
-                        if (string.IsNullOrEmpty(elmaItem.InRow))
+                        if (string.IsNullOrEmpty(elmaItem.Row))
                         {
-                            elmaItem.InRow = "0";
+                            elmaItem.Row = "0";
                         }
-                        if (string.IsNullOrEmpty(elmaItem.InPallet))
+                        if (string.IsNullOrEmpty(elmaItem.Pallet))
                         {
-                            elmaItem.InPallet = "0";
+                            elmaItem.Pallet = "0";
                         }
-                        if (elmaItem.InPack.Trim() != nom.Pack.Trim())
+                        if (elmaItem.Pack.Trim() != nom.Pack.Trim())
                         {
-                            elmaValue += $" В упаковке: 1C - {nom.Pack.Trim()}, elma - {elmaItem.InPack.Trim()}" + Environment.NewLine;
+                            elmaValue += $" В упаковке: 1C - {nom.Pack.Trim()}, elma - {elmaItem.Pack.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (elmaItem.InRow.Trim() != nom.Row.Trim())
+                        if (elmaItem.Row.Trim() != nom.Row.Trim())
                         {
-                            elmaValue += $" В строке: 1C - {nom.Row.Trim()}, elma - {elmaItem.InRow.Trim()}" + Environment.NewLine;
+                            elmaValue += $" В строке: 1C - {nom.Row.Trim()}, elma - {elmaItem.Row.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (elmaItem.InPallet.Trim() != nom.Pallet.Trim())
+                        if (elmaItem.Pallet.Trim() != nom.Pallet.Trim())
                         {
-                            elmaValue += $" В поддоне: 1C - {nom.Pallet.Trim()}, elma - {elmaItem.InPallet.Trim()}" + Environment.NewLine;
+                            elmaValue += $" В поддоне: 1C - {nom.Pallet.Trim()}, elma - {elmaItem.Pallet.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
                     }
                     if (blankItem != null)
                     {
-                        if (string.IsNullOrEmpty(blankItem.InPack))
+                        if (string.IsNullOrEmpty(blankItem.Pack))
                         {
-                            blankItem.InPack = "0";
+                            blankItem.Pack = "0";
                         }
-                        if (string.IsNullOrEmpty(blankItem.InRow))
+                        if (string.IsNullOrEmpty(blankItem.Row))
                         {
-                            blankItem.InRow = "0";
+                            blankItem.Row = "0";
                         }
-                        if (string.IsNullOrEmpty(blankItem.InPallet))
+                        if (string.IsNullOrEmpty(blankItem.Pallet))
                         {
-                            blankItem.InPallet = "0";
+                            blankItem.Pallet = "0";
                         }
-                        if (blankItem.InPack.Trim() != nom.Pack.Trim())
+                        if (blankItem.Pack.Trim() != nom.Pack.Trim())
                         {
-                            blankValue += $" В упаковке: 1C - {nom.Pack.Trim()}, бланк заказа - {blankItem.InPack.Trim()}" + Environment.NewLine;
+                            blankValue += $" В упаковке: 1C - {nom.Pack.Trim()}, бланк заказа - {blankItem.Pack.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (blankItem.InRow.Trim() != nom.Row.Trim())
+                        if (blankItem.Row.Trim() != nom.Row.Trim())
                         {
-                            blankValue += $" В строке: 1C - {nom.Row.Trim()}, бланк заказа - {blankItem.InRow.Trim()}" + Environment.NewLine;
+                            blankValue += $" В строке: 1C - {nom.Row.Trim()}, бланк заказа - {blankItem.Row.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
-                        if (blankItem.InPallet.Trim() != nom.Pallet.Trim())
+                        if (blankItem.Pallet.Trim() != nom.Pallet.Trim())
                         {
-                            blankValue += $" В поддоне: 1C - {nom.Pallet.Trim()}, бланк заказа - {blankItem.InPallet.Trim()}" + Environment.NewLine;
+                            blankValue += $" В поддоне: 1C - {nom.Pallet.Trim()}, бланк заказа - {blankItem.Pallet.Trim()}" + Environment.NewLine;
                             isChange = true;
                         }
                     }
@@ -297,13 +356,13 @@ namespace NomenclExcelToJson
                 var elmaObject = elmaObjects.Where(c => c.VendorCode.Trim() == blankObject.VendorCode.Trim()).FirstOrDefault();
                 var nomObject = nomObjects.Where(c => c.VendorCode.Trim() == blankObject.VendorCode.Trim()).FirstOrDefault();
                 jointObject.NomVendorCode = nomObject?.VendorCode;
-                jointObject.BlankInPack = blankObject.InPack;
-                jointObject.BlankInPallet = blankObject.InPallet;
-                jointObject.BlankInRow = blankObject.InRow;
+                jointObject.BlankInPack = blankObject.Pack;
+                jointObject.BlankInPallet = blankObject.Pallet;
+                jointObject.BlankInRow = blankObject.Row;
                 jointObject.Code1С = elmaObject?.Code1С;
-                jointObject.ElmaInPack = elmaObject?.InPack;
-                jointObject.ElmaInPallet = elmaObject?.InPallet;
-                jointObject.ElmaInRow = elmaObject?.InRow;
+                jointObject.ElmaInPack = elmaObject?.Pack;
+                jointObject.ElmaInPallet = elmaObject?.Pallet;
+                jointObject.ElmaInRow = elmaObject?.Row;
                 jointObject.ElmaMultiplicity = elmaObject?.Multiplicity;
                 jointObject.GUID1C = elmaObject != null ? elmaObject.Guid1C : nomObject?.GUID1C;
                 jointObject.Name = blankObject.Name;
@@ -325,9 +384,9 @@ namespace NomenclExcelToJson
                 var elmaObject = elmaObjects.Where(c => c.VendorCode.Trim() == elem.VendorCode.Trim()).FirstOrDefault();
                 jointObject.NomVendorCode = elem.VendorCode.Trim();
                 jointObject.Code1С = elem.Code1С;
-                jointObject.ElmaInPack = elmaObject?.InPack;
-                jointObject.ElmaInPallet = elmaObject?.InPallet;
-                jointObject.ElmaInRow = elmaObject?.InRow;
+                jointObject.ElmaInPack = elmaObject?.Pack;
+                jointObject.ElmaInPallet = elmaObject?.Pallet;
+                jointObject.ElmaInRow = elmaObject?.Row;
                 jointObject.ElmaMultiplicity = elmaObject?.Multiplicity;
                 jointObject.GUID1C = elem.GUID1C;
                 jointObject.Name = elem.Name;

@@ -17,17 +17,20 @@ namespace NomenclExcelToJson
         [JsonProperty("VendorCode")]
         public string VendorCode { get; set; }
 
-        [JsonProperty("InPallet")]
-        public string InPallet { get; set; }
+        [JsonProperty("Pallet")]
+        public string Pallet { get; set; }
 
-        [JsonProperty("InRow")]
-        public string InRow { get; set; }
+        [JsonProperty("Row")]
+        public string Row { get; set; }
 
-        [JsonProperty("InPack")]
-        public string InPack { get; set; }
+        [JsonProperty("Pack")]
+        public string Pack { get; set; }
 
         [JsonProperty("MinSale")]
         public string Exclusive { get; set; }
+
+        [JsonProperty("Weight")]
+        public string Weight { get; set; }
     }
 
     public partial class BlankObject
